@@ -20,6 +20,11 @@ if option == "Camera":
 else:
     img_file = st.file_uploader("Upload an Image", type=["png", "jpg", "jpeg"])
 
+# セッション状態で画像データを保持
+if 'img_array' not in st.session_state:
+    st.session_state.img_array = None
+    st.session_state.img_display = None
+
 if img_file is not None:
     # Resize images (processing and preview)
     img = Image.open(img_file).convert("RGB").resize((50, 50))
@@ -36,8 +41,12 @@ if img_file is not None:
     img_display = img_display_raw.resize((new_width, new_height))
     st.image(img_display, caption="Selected Image", use_container_width=True)
 
-    img_array = np.array(img)
+    # 画像データをセッションに保存
+    st.session_state.img_array = np.array(img)
+    st.session_state.img_display = img_display
 
+# パラメータが変更されたときに音を生成する関数
+def generate_sound(img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vol_gran, master_volume, bitcrush_enabled, bit_depth, sample_rate_reduction):
     # Split image into 3 parts (horizontal)
     h, w, _ = img_array.shape
     third = h // 3
@@ -129,6 +138,36 @@ if img_file is not None:
         osc4_sine, osc4_square, osc4_saw, osc4_noise, osc4_gran = generate_oscillators(chord_freqs[3], t)
         osc5_sine, osc5_square, osc5_saw, osc5_noise, osc5_gran = generate_oscillators(chord_freqs[4], t)
 
+    # Mix sound
+    base_sound = (
+        vol_sine * (osc1_sine + osc2_sine + osc3_sine + osc4_sine + osc5_sine) +
+        vol_square * (osc1_square + osc2_square + osc3_square + osc4_square + osc5_square) +
+        vol_saw * (osc1_saw + osc2_saw + osc3_saw + osc4_saw + osc5_saw) +
+        vol_noise * (osc1_noise + osc2_noise + osc3_noise + osc4_noise + osc5_noise) +
+        vol_gran * (osc1_gran + osc2_gran + osc3_gran + osc4_gran + osc5_gran)
+    )
+    base_sound /= np.max(np.abs(base_sound)) if np.max(np.abs(base_sound)) > 0 else 1
+
+    if bitcrush_enabled:
+        levels = 2 ** bit_depth
+        base_sound = np.round(base_sound * (levels - 1)) / (levels - 1)
+        if sample_rate_reduction < fs:
+            factor = fs // sample_rate_reduction
+            base_sound = base_sound[::factor]
+            base_sound = np.repeat(base_sound, factor)[:len(t)]
+
+    mixed_sound = base_sound * master_volume
+
+    # WAV generation
+    wav_buffer = io.BytesIO()
+    wavfile.write(wav_buffer, fs, (mixed_sound * 32767).astype(np.int16))
+    wav_buffer.seek(0)
+    wav_bytes = wav_buffer.getvalue()
+    wav_base64 = base64.b64encode(wav_bytes).decode('utf-8')
+
+    return wav_base64, mode_display
+
+if st.session_state.img_array is not None:
     # Volume sliders (sidebar)
     st.sidebar.header("Individual Volume Control")
     if mode == "Random Mode":
@@ -156,32 +195,26 @@ if img_file is not None:
         bit_depth = 16
         sample_rate_reduction = 44100
 
-    # Mix sound
-    base_sound = (
-        vol_sine * (osc1_sine + osc2_sine + osc3_sine + osc4_sine + osc5_sine) +
-        vol_square * (osc1_square + osc2_square + osc3_square + osc4_square + osc5_square) +
-        vol_saw * (osc1_saw + osc2_saw + osc3_saw + osc4_saw + osc5_saw) +
-        vol_noise * (osc1_noise + osc2_noise + osc3_noise + osc4_noise + osc5_noise) +
-        vol_gran * (osc1_gran + osc2_gran + osc3_gran + osc4_gran + osc5_gran)
-    )
-    base_sound /= np.max(np.abs(base_sound)) if np.max(np.abs(base_sound)) > 0 else 1
+    # Refresh button
+    if st.button("Refresh Sound"):
+        wav_base64, mode_display = generate_sound(
+            st.session_state.img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vol_gran,
+            master_volume, bitcrush_enabled, bit_depth, sample_rate_reduction
+        )
+        st.session_state.wav_base64 = wav_base64
+        st.session_state.mode_display = mode_display
 
-    if bitcrush_enabled:
-        levels = 2 ** bit_depth
-        base_sound = np.round(base_sound * (levels - 1)) / (levels - 1)
-        if sample_rate_reduction < fs:
-            factor = fs // sample_rate_reduction
-            base_sound = base_sound[::factor]
-            base_sound = np.repeat(base_sound, factor)[:len(t)]
-
-    mixed_sound = base_sound * master_volume
-
-    # WAV generation for playback
-    wav_buffer = io.BytesIO()
-    wavfile.write(wav_buffer, fs, (mixed_sound * 32767).astype(np.int16))
-    wav_buffer.seek(0)
-    wav_bytes = wav_buffer.getvalue()
-    wav_base64 = base64.b64encode(wav_bytes).decode('utf-8')
+    # Initial sound generation or use cached version
+    if 'wav_base64' not in st.session_state or st.session_state.get('mode_display') != mode:
+        wav_base64, mode_display = generate_sound(
+            st.session_state.img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vol_gran,
+            master_volume, bitcrush_enabled, bit_depth, sample_rate_reduction
+        )
+        st.session_state.wav_base64 = wav_base64
+        st.session_state.mode_display = mode_display
+    else:
+        wav_base64 = st.session_state.wav_base64
+        mode_display = st.session_state.mode_display
 
     # Audio playback in browser
     st.write(f"Generated Sound ({mode_display})")
@@ -195,7 +228,7 @@ if img_file is not None:
 
     # Image download
     img_buffer = io.BytesIO()
-    img_display.save(img_buffer, format="PNG")
+    st.session_state.img_display.save(img_buffer, format="PNG")
     img_buffer.seek(0)
     st.download_button(
         label="Download Image",
@@ -204,9 +237,10 @@ if img_file is not None:
         mime="image/png"
     )
 
-    # Credits in sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.write("Created by Hiroshi Mehata")
-    st.sidebar.write("Extension app for Color Cleanser Exhibition")
-    st.sidebar.markdown("[Website](https://www.mehatasentimentallegend.com/the-story-of-color-cleanser)")
+# Credits in sidebar
+st.sidebar.markdown("---")
+st.sidebar.write("Created by Hiroshi Mehata")
+st.sidebar.write("Extension app for Color Cleanser Exhibition")
+st.sidebar.markdown("[Website](https://www.mehatasentimentallegend.com/the-story-of-color-cleanser)")
+st.sidebar.image("https://via.placeholder.com/150", caption="Color Cleanser Logo", use_container_width=True)
     st.sidebar.image("c-001.jpg", caption="Color Cleanser", use_container_width=True)
