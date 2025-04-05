@@ -209,4 +209,4 @@ if img_file is not None:
     st.sidebar.write("Created by Hiroshi Mehata")
     st.sidebar.write("Extension app for Color Cleanser Exhibition")
     st.sidebar.markdown("[Website](https://www.mehatasentimentallegend.com/the-story-of-color-cleanser)")
-    st.sidebar.image("c-001.jpg", caption="Color Cleanser", use_column_width=True)
+    st.sidebar.image("c-001.jpg", caption="Color Cleanser", use_container_width=True)
