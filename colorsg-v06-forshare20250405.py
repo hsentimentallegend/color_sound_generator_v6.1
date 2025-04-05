@@ -22,7 +22,7 @@ else:
 
 if img_file is not None:
     # Resize images (processing and preview)
-    img = Image.open(img_file).convert("RGB").resize((50, 50))  # 軽量化
+    img = Image.open(img_file).convert("RGB").resize((50, 50))
     img_display_raw = Image.open(img_file).convert("RGB")
     max_width, max_height = 720, 1280
     width, height = img_display_raw.size
@@ -34,7 +34,8 @@ if img_file is not None:
         new_height = min(height, max_height)
         new_width = int(new_height * aspect_ratio)
     img_display = img_display_raw.resize((new_width, new_height))
-    st.image(img_display, caption="Selected Image", use_column_width=True)
+    # ここを修正: use_column_width -> use_container_width
+    st.image(img_display, caption="Selected Image", use_container_width=True)
 
     img_array = np.array(img)
 
@@ -66,14 +67,14 @@ if img_file is not None:
 
     # Sample rate and fixed duration
     fs = 44100
-    duration = 5.0  # 短縮して負荷軽減
+    duration = 5.0
     t = np.linspace(0, duration, int(fs * duration), False)
 
     # Oscillator generation
     def generate_oscillators(freq, t):
         sine = np.sin(2 * np.pi * freq * t)
-        square = np.sign(np.sin(2 * np.pi * freq * t))  # 矩形波の簡易版
-        sawtooth = 2 * (t * freq - np.floor(t * freq + 0.5))  # ノコギリ波
+        square = np.sign(np.sin(2 * np.pi * freq * t))
+        sawtooth = 2 * (t * freq - np.floor(t * freq + 0.5))
         noise = np.random.uniform(-1, 1, len(t))
         granular = np.zeros_like(t)
         grain_size = int(fs * 0.05)
@@ -124,7 +125,7 @@ if img_file is not None:
             mode_display = "Harmony Mode (Minor 9th)"
 
         osc1_sine, osc1_square, osc1_saw, osc1_noise, osc1_gran = generate_oscillators(chord_freqs[0], t)
-        osc2_sine, osc2_square, osc2_saw, osc2_noise, osc2_gran = generate_oscillators(chord_freqs[1], t)
+        osc2_sine, osc2_square, osc2_saw, osc2_noise, osc2_gran = generate_oscillators(chord_freqs[1], orgt)
         osc3_sine, osc3_square, osc3_saw, osc3_noise, osc3_gran = generate_oscillators(chord_freqs[2], t)
         osc4_sine, osc4_square, osc4_saw, osc4_noise, osc4_gran = generate_oscillators(chord_freqs[3], t)
         osc5_sine, osc5_square, osc5_saw, osc5_noise, osc5_gran = generate_oscillators(chord_freqs[4], t)
