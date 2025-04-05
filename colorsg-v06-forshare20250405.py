@@ -125,7 +125,7 @@ if img_file is not None:
             mode_display = "Harmony Mode (Minor 9th)"
 
         osc1_sine, osc1_square, osc1_saw, osc1_noise, osc1_gran = generate_oscillators(chord_freqs[0], t)
-        osc2_sine, osc2_square, osc2_saw, osc2_noise, osc2_gran = generate_oscillators(chord_freqs[1], orgt)
+        osc2_sine, osc2_square, osc2_saw, osc2_noise, osc2_gran = generate_oscillators(chord_freqs[1], t)
         osc3_sine, osc3_square, osc3_saw, osc3_noise, osc3_gran = generate_oscillators(chord_freqs[2], t)
         osc4_sine, osc4_square, osc4_saw, osc4_noise, osc4_gran = generate_oscillators(chord_freqs[3], t)
         osc5_sine, osc5_square, osc5_saw, osc5_noise, osc5_gran = generate_oscillators(chord_freqs[4], t)
