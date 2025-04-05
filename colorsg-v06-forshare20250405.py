@@ -66,7 +66,7 @@ if img_file is not None:
 
     # Sample rate and fixed duration
     fs = 44100
-    duration = 5.0
+    duration = 10.0
     t = np.linspace(0, duration, int(fs * duration), False)
 
     # Oscillator generation
