@@ -34,7 +34,6 @@ if img_file is not None:
         new_height = min(height, max_height)
         new_width = int(new_height * aspect_ratio)
     img_display = img_display_raw.resize((new_width, new_height))
-    # ここを修正: use_column_width -> use_container_width
     st.image(img_display, caption="Selected Image", use_container_width=True)
 
     img_array = np.array(img)
@@ -193,6 +192,17 @@ if img_file is not None:
     </audio>
     """
     st.markdown(audio_html, unsafe_allow_html=True)
+
+    # Image download
+    img_buffer = io.BytesIO()
+    img_display.save(img_buffer, format="PNG")
+    img_buffer.seek(0)
+    st.download_button(
+        label="Download Image",
+        data=img_buffer,
+        file_name="color_image.png",
+        mime="image/png"
+    )
 
     # Credits in sidebar
     st.sidebar.markdown("---")
