@@ -151,7 +151,7 @@ if img_file is not None:
     bitcrush_enabled = st.checkbox("Enable Bitcrusher (Distortion)", value=False)
     if bitcrush_enabled:
         bit_depth = st.slider("Bit Depth", 1, 8, 4)
-        sample_rate_reduction = st.slider("Sample Rate Reduction", 1000, 44100, 8000)
+        sample_rate_reduction = st.sidebar.slider("Sample Rate Reduction", 1000, 44100, 8000)
     else:
         bit_depth = 16
         sample_rate_reduction = 44100
