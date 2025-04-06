@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import colorsys
-from scipy.io import wavfile
+from scipy.io import wavfile  # ここで正しくインポート
 import io
 import base64
 import urllib.parse
@@ -36,7 +36,7 @@ if 'img_array' not in st.session_state:
     st.session_state.bitcrush_enabled = False
     st.session_state.bit_depth = 4
     st.session_state.sample_rate_reduction = 8000
-    st.session_state.refresh_key = 0  # ここで確実に初期化
+    st.session_state.refresh_key = 0
 
 if img_file is not None:
     img = Image.open(img_file).convert("RGB").resize((50, 50))
@@ -161,7 +161,7 @@ def generate_sound(img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vo
     mixed_sound = base_sound * master_volume
 
     wav_buffer = io.BytesIO()
-    wavystyfile.write(wav_buffer, fs, (mixed_sound * 32767).astype(np.int16))
+    wavfile.write(wav_buffer, fs, (mixed_sound * 32767).astype(np.int16))  # ここを修正
     wav_buffer.seek(0)
     wav_bytes = wav_buffer.getvalue()
     wav_base64 = base64.b64encode(wav_bytes).decode('utf-8')
@@ -224,7 +224,6 @@ if st.session_state.img_array is not None:
         Your browser does not support the audio element.
     </audio>
     """
-    # keyを文字列として渡すことを確認
     st.markdown(audio_html, unsafe_allow_html=True, key=str(st.session_state.refresh_key))
 
     tweet_text = f"Generated a unique sound from my #ColorCleanser artwork! Check it out: {mode_display}"
