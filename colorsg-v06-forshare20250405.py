@@ -36,7 +36,6 @@ if 'img_array' not in st.session_state:
     st.session_state.bitcrush_enabled = False
     st.session_state.bit_depth = 4
     st.session_state.sample_rate_reduction = 8000
-    st.session_state.refresh_key = 0  # 確実に初期化
 
 if img_file is not None:
     img = Image.open(img_file).convert("RGB").resize((50, 50))
@@ -192,6 +191,9 @@ if st.session_state.img_array is not None:
             st.session_state.bit_depth = st.slider("Bit Depth", 1, 8, st.session_state.bit_depth)
             st.session_state.sample_rate_reduction = st.slider("Sample Rate Reduction", 1000, 44100, st.session_state.sample_rate_reduction)
 
+    # プレイヤー用のコンテナ
+    player_container = st.empty()
+
     if st.button("Refresh Sound"):
         wav_base64, mode_display = generate_sound(
             st.session_state.img_array, mode, st.session_state.vol_sine, st.session_state.vol_square,
@@ -201,8 +203,14 @@ if st.session_state.img_array is not None:
         )
         st.session_state.wav_base64 = wav_base64
         st.session_state.mode_display = mode_display
-        st.session_state.refresh_key += 1
-        st.write(f"Debug: refresh_key = {st.session_state.refresh_key}")  # デバッグ用
+        # コンテナに新しいプレイヤーを表示
+        audio_html = f"""
+        <audio controls>
+            <source src="data:audio/wav;base64,{wav_base64}" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        """
+        player_container.markdown(f"Generated Sound ({mode_display})<br>{audio_html}", unsafe_allow_html=True)
 
     if 'wav_base64' not in st.session_state or st.session_state.get('mode_display') != mode:
         wav_base64, mode_display = generate_sound(
@@ -213,23 +221,25 @@ if st.session_state.img_array is not None:
         )
         st.session_state.wav_base64 = wav_base64
         st.session_state.mode_display = mode_display
-        st.session_state.refresh_key += 1
-        st.write(f"Debug: Initial refresh_key = {st.session_state.refresh_key}")  # デバッグ用
+        # 初回表示
+        audio_html = f"""
+        <audio controls>
+            <source src="data:audio/wav;base64,{wav_base64}" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        """
+        player_container.markdown(f"Generated Sound ({mode_display})<br>{audio_html}", unsafe_allow_html=True)
     else:
+        # 既存の音を再表示
         wav_base64 = st.session_state.wav_base64
         mode_display = st.session_state.mode_display
-
-    st.write(f"Generated Sound ({mode_display})")
-    audio_html = f"""
-    <audio controls>
-        <source src="data:audio/wav;base64,{wav_base64}" type="audio/wav">
-        Your browser does not support the audio element.
-    </audio>
-    """
-    # keyをシンプルな文字列に
-    audio_key = f"audio_{st.session_state.refresh_key}"
-    st.write(f"Debug: Audio key = {audio_key}")  # デバッグ用
-    st.markdown(audio_html, unsafe_allow_html=True, key=audio_key)
+        audio_html = f"""
+        <audio controls>
+            <source src="data:audio/wav;base64,{wav_base64}" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        """
+        player_container.markdown(f"Generated Sound ({mode_display})<br>{audio_html}", unsafe_allow_html=True)
 
     tweet_text = f"Generated a unique sound from my #ColorCleanser artwork! Check it out: {mode_display}"
     tweet_url = f"https://twitter.com/intent/tweet?text={urllib.parse.quote(tweet_text)}"
