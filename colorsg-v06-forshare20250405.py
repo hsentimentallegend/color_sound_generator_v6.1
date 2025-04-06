@@ -169,7 +169,7 @@ def generate_sound(img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vo
 
 if st.session_state.img_array is not None:
     st.subheader("Sound Parameters")
-    st.write("cutomize your sound freely and push refresh button")
+    st.write("customize your sound freely and push refresh button")
     col1, col2 = st.columns(2)
     with col1:
         if mode == "Random Mode":
@@ -242,6 +242,7 @@ if st.session_state.img_array is not None:
         """
         player_container.markdown(f"Generated Sound ({mode_display})<br>{audio_html}", unsafe_allow_html=True)
 
+    st.write("1. Take a photo and generate a sound. 2. Play the player. 3. You can customize the sound by manipulating the parameters and pressing the refresh button. 4. You can also switch between two modes to create the sound.")
     tweet_text = f"Generated a unique sound from #ColorCleanser artwork! Check it out: {mode_display}"
     tweet_url = f"https://twitter.com/intent/tweet?text={urllib.parse.quote(tweet_text)}"
     st.markdown(f'<a href="{tweet_url}" target="_blank"><button>Share on Twitter</button></a>', unsafe_allow_html=True)
