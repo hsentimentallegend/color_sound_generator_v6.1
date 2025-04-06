@@ -36,7 +36,7 @@ if 'img_array' not in st.session_state:
     st.session_state.bitcrush_enabled = False
     st.session_state.bit_depth = 4
     st.session_state.sample_rate_reduction = 8000
-    st.session_state.refresh_key = 0
+    st.session_state.refresh_key = 0  # ここで確実に初期化
 
 if img_file is not None:
     img = Image.open(img_file).convert("RGB").resize((50, 50))
@@ -161,7 +161,7 @@ def generate_sound(img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vo
     mixed_sound = base_sound * master_volume
 
     wav_buffer = io.BytesIO()
-    wavfile.write(wav_buffer, fs, (mixed_sound * 32767).astype(np.int16))
+    wavystyfile.write(wav_buffer, fs, (mixed_sound * 32767).astype(np.int16))
     wav_buffer.seek(0)
     wav_bytes = wav_buffer.getvalue()
     wav_base64 = base64.b64encode(wav_bytes).decode('utf-8')
@@ -224,9 +224,9 @@ if st.session_state.img_array is not None:
         Your browser does not support the audio element.
     </audio>
     """
-    st.markdown(audio_html, unsafe_allow_html=True, key=f"audio_{st.session_state.refresh_key}")
+    # keyを文字列として渡すことを確認
+    st.markdown(audio_html, unsafe_allow_html=True, key=str(st.session_state.refresh_key))
 
-    # Share button
     tweet_text = f"Generated a unique sound from my #ColorCleanser artwork! Check it out: {mode_display}"
     tweet_url = f"https://twitter.com/intent/tweet?text={urllib.parse.quote(tweet_text)}"
     st.markdown(f'<a href="{tweet_url}" target="_blank"><button>Share on Twitter</button></a>', unsafe_allow_html=True)
