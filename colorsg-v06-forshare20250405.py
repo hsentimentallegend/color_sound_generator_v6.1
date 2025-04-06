@@ -7,7 +7,7 @@ import io
 import base64
 import urllib.parse
 
-st.title("Color Sound Generator with Mode Switch")
+st.title("Color Sound Generator v6.1 with Mode Switch")
 
 # Mode selection
 mode = st.radio("Select Mode", ("Random Mode", "Harmony Mode"))
@@ -169,6 +169,7 @@ def generate_sound(img_array, mode, vol_sine, vol_square, vol_saw, vol_noise, vo
 
 if st.session_state.img_array is not None:
     st.subheader("Sound Parameters")
+    st.write("cutomize your sound freely and push refresh button")
     col1, col2 = st.columns(2)
     with col1:
         if mode == "Random Mode":
@@ -241,7 +242,7 @@ if st.session_state.img_array is not None:
         """
         player_container.markdown(f"Generated Sound ({mode_display})<br>{audio_html}", unsafe_allow_html=True)
 
-    tweet_text = f"Generated a unique sound from my #ColorCleanser artwork! Check it out: {mode_display}"
+    tweet_text = f"Generated a unique sound from #ColorCleanser artwork! Check it out: {mode_display}"
     tweet_url = f"https://twitter.com/intent/tweet?text={urllib.parse.quote(tweet_text)}"
     st.markdown(f'<a href="{tweet_url}" target="_blank"><button>Share on Twitter</button></a>', unsafe_allow_html=True)
 
